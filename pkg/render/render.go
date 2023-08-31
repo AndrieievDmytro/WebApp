@@ -1,13 +1,15 @@
 package render
 
 import (
-	"WebApp/helper"
+	"fmt"
 	"net/http"
 	"text/template"
 )
 
 func RenderTempalte(w http.ResponseWriter, tmpl string) {
-	parsedTempalte, _ := template.ParseFiles("./templates/" + tmpl)
+	parsedTempalte, _ := template.ParseFiles("./templates/"+tmpl, "./templates/base.layout.tmpl")
 	err := parsedTempalte.Execute(w, nil)
-	helper.CheckErr(err)
+	if err != nil {
+		fmt.Println("Error parsing tempalte")
+	}
 }

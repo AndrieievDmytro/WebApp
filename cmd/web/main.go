@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	portNumber string
+	portNumber string = ":8080"
 )
 
 func init() {
@@ -17,8 +17,8 @@ func init() {
 
 func main() {
 	flag.Parse()
-	fmt.Printf("Starting application on port %s", portNumber)
-	http.HandleFunc("/", handlers.Home)
+	fmt.Printf("Starting application on port %s ", portNumber)
+	http.HandleFunc("/home", handlers.Home)
 	http.HandleFunc("/about", handlers.About)
 
 	_ = http.ListenAndServe(portNumber, nil)
