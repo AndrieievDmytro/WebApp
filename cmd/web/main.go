@@ -17,7 +17,7 @@ func init() {
 
 func main() {
 	flag.Parse()
-	fmt.Printf("Starting application on port %s ", portNumber)
+	fmt.Printf("Starting application on port %s \n", portNumber)
 	http.HandleFunc("/home", handlers.Home)
 	http.HandleFunc("/about", handlers.About)
 
