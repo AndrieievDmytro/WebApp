@@ -5,7 +5,7 @@ import (
 	"text/template"
 )
 
-// AppConfig contains the application configuration
+// AppConfig contains the application configurations
 type AppConfig struct {
 	UseCache     bool
 	TempateCache map[string]*template.Template
