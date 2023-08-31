@@ -24,5 +24,7 @@ func AddValues(x, y int) int {
 func main() {
 	http.HandleFunc("/", Home)
 	http.HandleFunc("/about", About)
+	fmt.Printf("Starting application on port %s", portNumber)
+
 	_ = http.ListenAndServe(portNumber, nil)
 }
