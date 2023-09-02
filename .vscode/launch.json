@@ -5,11 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Package",
+            "name": "Production mode",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${fileDirname}"
+            "program": "C:/ProjectFolder/Go/src/WebApp/cmd/web/.",
+            "args": ["-pd","true"],
         }
-    ]
+    ,
+        {
+            "name": "Developer mode",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "C:/ProjectFolder/Go/src/WebApp/cmd/web/.",
+            "args": ["-pd","false"],
+        }
+    ],
+
 }

@@ -3,6 +3,7 @@ package render
 import (
 	"WebApp/pkg/config"
 	"bytes"
+	"fmt"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -10,73 +11,92 @@ import (
 )
 
 var (
-	pageTemplates  = "./templates/*.page.tmpl"
-	layoutTemlates = "./templates/*.layout.tmpl"
-	app            *config.AppConfig
+	app *config.AppConfig
 )
 
-// NewTemplates sets the config for the template function
-func NewTemplate(a *config.AppConfig) {
+// NewTemplates sets the config for the template package
+func NewTemplates(a *config.AppConfig) {
 	app = a
 }
 
 func RenderTemplate(w http.ResponseWriter, tmpl string) {
-	var tc map[string]*template.Template
+	var templateCache map[string]*template.Template
 
-	//if/else statment checks if the app in development mode or not
+	// Check if the app is in development mode or not
 	if app.UseCache {
-		//recieving template cache from app config
-		tc = app.TempateCache
+		// Retrieve template cache from app config
+		templateCache = app.TempateCache
 	} else {
-		tc, _ = CreateTemplateCache()
+		var err error
+		templateCache, err = CreateTemplateCache()
+		if err != nil {
+			log.Println("Error creating template cache:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
 	}
 
-	//get requested template
-	t, ok := tc[tmpl]
-	if !ok {
-		log.Fatal("Could not get template from template cache")
+	// Get the requested template
+	templateSet, exists := templateCache[tmpl]
+	if !exists {
+		log.Println("Template not found in cache:", tmpl)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 
-	buf := new(bytes.Buffer)
+	buffer := new(bytes.Buffer)
 
-	// Check if something wrong with templates stored in the map, do not execute directly.
-	_ = t.Execute(buf, nil)
-
-	//render the tempate
-	_, err := buf.WriteTo(w)
+	// Render the template into the buffer
+	err := templateSet.Execute(buffer, nil)
 	if err != nil {
-		log.Println("Error writing template to browser", err)
+		log.Println("Error executing template:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	// Write the buffer contents to the HTTP response writer
+	_, err = buffer.WriteTo(w)
+	if err != nil {
+		log.Println("Error writing template to browser:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
 func CreateTemplateCache() (map[string]*template.Template, error) {
-	myCache := map[string]*template.Template{}
+	// Create an empty template cache.
+	myCache := make(map[string]*template.Template)
 
-	// get all the files end with *.page.tmpl from ./templates
-
-	pages, err := filepath.Glob(pageTemplates)
+	// Load layout templates only once since they won't change per page iteration.
+	matches, err := filepath.Glob(app.LayoutTemlates)
 	if err != nil {
-		return myCache, err
+		return nil, fmt.Errorf("error getting layout templates: %w", err)
 	}
 
-	//range through all files ending with *.page.tmpl
+	// Get all the page templates.
+	pages, err := filepath.Glob(app.PageTemplates)
+	if err != nil {
+		return nil, fmt.Errorf("error getting page templates: %w", err)
+	}
+
+	// Range through all page templates.
 	for _, page := range pages {
 		name := filepath.Base(page)
-		//populate template set
+
+		// Parse the page template.
 		ts, err := template.New(name).ParseFiles(page)
 		if err != nil {
-			return myCache, err
+			return nil, fmt.Errorf("error parsing page template %s: %w", name, err)
 		}
-		matches, err := filepath.Glob(layoutTemlates)
-		if err != nil {
-			return myCache, err
-		}
+
+		// If there are layout templates, parse them.
 		if len(matches) > 0 {
-			ts, err = ts.ParseGlob(layoutTemlates)
+			ts, err = ts.ParseGlob(app.LayoutTemlates)
 			if err != nil {
-				return myCache, err
+				return nil, fmt.Errorf("error parsing layout templates for page %s: %w", name, err)
 			}
 		}
+
+		// Store the complete template set in the cache.
 		myCache[name] = ts
 	}
 	return myCache, nil

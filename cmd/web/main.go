@@ -11,37 +11,31 @@ import (
 )
 
 var (
-	app        config.AppConfig
-	portNumber string = ":8080"
+	app config.AppConfig
+	//if set to false update template on each request(development mode)
+	//if set to true write templates to cache
+	isProdMode bool
 )
 
 func init() {
-	flag.StringVar(&portNumber, "p", portNumber, "Port to run the application on")
+	flag.BoolVar(&isProdMode, "pd", false, "If true production mode is on, if false production mode is off.")
 }
 
 func main() {
-
+	flag.Parse()
+	fmt.Printf("Production Mode: %v\n", isProdMode)
+	app.ConfigureApp(isProdMode)
+	render.NewTemplates(&app)
+	//Initialize structure cache field with a templates cache
 	templateCache, err := render.CreateTemplateCache()
 	if err != nil {
 		log.Fatal("Cannot create template cache")
 	}
-
 	app.TempateCache = templateCache
-
-	//if set to false update template on each request(development mode)
-	//if set to true write templates to cache
-	app.UseCache = false
-
 	repo := handlers.NewRepository(&app)
 	handlers.NewHandlers(repo)
-
-	render.NewTemplate(&app)
-
-	flag.Parse()
-	fmt.Printf("Starting application on port %s \n", portNumber)
-
+	fmt.Printf("Starting application on port %s \n", app.PortNumber)
 	http.HandleFunc("/home", handlers.Repo.Home)
 	http.HandleFunc("/about", handlers.Repo.About)
-
-	_ = http.ListenAndServe(portNumber, nil)
+	_ = http.ListenAndServe(app.PortNumber, nil)
 }
