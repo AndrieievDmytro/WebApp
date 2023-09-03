@@ -1,9 +1,9 @@
 package helper
 
-import "fmt"
+import "log"
 
 func CheckErr(err error) {
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal("Cannot create template cache")
 	}
 }

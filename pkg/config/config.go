@@ -7,18 +7,19 @@ import (
 
 // AppConfig contains the application configurations
 type AppConfig struct {
-	UseCache       bool
-	TempateCache   map[string]*template.Template
-	InfoLog        *log.Logger
-	PageTemplates  string
-	LayoutTemlates string
-	PortNumber     string
+	UseCache           bool
+	TempateCache       map[string]*template.Template
+	InfoLog            *log.Logger
+	PageTemplatesPath  string
+	LayoutTemlatesPath string
+	PortNumber         string
+	PageTemplates      map[string]string
 }
 
 // Configure the basic configurations of the application
 func (a *AppConfig) ConfigureApp(isProdMode bool) {
-	a.PageTemplates = "C:\\ProjectFolder\\Go\\src\\WebApp\\templates\\*.page.tmpl"
-	a.LayoutTemlates = "C:\\ProjectFolder\\Go\\src\\WebApp\\templates\\*.layout.tmpl"
+	a.PageTemplatesPath = "C:\\ProjectFolder\\Go\\src\\WebApp\\templates\\*.page.tmpl"
+	a.LayoutTemlatesPath = "C:\\ProjectFolder\\Go\\src\\WebApp\\templates\\*.layout.tmpl"
 	a.PortNumber = ":8080"
 	a.UseCache = isProdMode
 }
