@@ -49,57 +49,33 @@ using the prepared template data.
 
 func (m *Repository) SetupRoutes() {
 	lastElement := ""
+	urlSeparator := "/"
+
 	handlerFunc := func(w http.ResponseWriter, r *http.Request) {
+		templateData := models.TemplateData{
+			StringMap: make(map[string]string),
+		}
 		body, err := io.ReadAll(r.Body)
+		url := strings.Split(r.URL.Path, urlSeparator)
+		lastElement = url[len(url)-1]
 		if err != nil {
 			// Handle the error here
 			http.Error(w, "Failed to read request body", http.StatusInternalServerError)
 			return
 		}
 		defer r.Body.Close()
-
-		url := strings.Split(r.URL.Path, "/")
-		lastElement = url[len(url)-1]
-		templateData, err := prepareTemplateData(lastElement, body)
-		if err != nil {
-			// Handle the error here
-			http.Error(w, "Failed to prepare template data", http.StatusInternalServerError)
-			return
+		if len(body) != 0 {
+			err = json.Unmarshal(body, &templateData)
+			if err != nil {
+				http.Error(w, "Failed to prepare template data", http.StatusInternalServerError)
+			}
 		}
-
 		val, exists := m.App.PageTemplates[lastElement]
 		if exists {
-			render.RenderTemplate(w, val, templateData)
+			render.RenderTemplate(w, val, &templateData)
 		} else {
 			http.Error(w, fmt.Sprintf("Route %s is not in the map.", lastElement), http.StatusInternalServerError)
 		}
 	}
 	http.HandleFunc("/"+lastElement, handlerFunc)
-}
-
-/*
-prepareTemplateData takes a key string and a byte slice representing the body of an HTTP request.
-It attempts to unmarshal the body into a TemplateData struct, specifically targeting the StringMap field.
-
-This function is primarily used to extract structured data from the incoming request payload (in JSON format)
-and prepare it for rendering within templates.
-
-Parameters:
-- key: Not directly used in the function body but could potentially serve a purpose in future implementations or in other parts of the codebase.
-- body: A byte slice containing the JSON payload from an HTTP request, expected to match the structure of the TemplateData struct.
-
-Returns:
-- A pointer to a TemplateData instance populated with the unmarshaled data.
-- An error, if the unmarshaling process fails. Otherwise, returns nil.
-*/
-
-func prepareTemplateData(key string, body []byte) (*models.TemplateData, error) {
-	td := models.TemplateData{
-		StringMap: make(map[string]string),
-	}
-	err := json.Unmarshal(body, &td)
-	if err != nil {
-		return &td, err
-	}
-	return &td, nil
 }
