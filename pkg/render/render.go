@@ -2,6 +2,7 @@ package render
 
 import (
 	"WebApp/pkg/config"
+	"WebApp/pkg/models"
 	"bytes"
 	"fmt"
 	"log"
@@ -20,7 +21,7 @@ func NewTemplates(a *config.AppConfig) {
 	app = a
 }
 
-func RenderTemplate(w http.ResponseWriter, tmpl string) {
+func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
 	var templateCache map[string]*template.Template
 	// Check if the app is in development mode or not
 	if app.UseCache {
@@ -44,7 +45,7 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 	}
 	buffer := new(bytes.Buffer)
 	// Render the template into the buffer
-	err := templateSet.Execute(buffer, nil)
+	err := templateSet.Execute(buffer, td)
 	if err != nil {
 		log.Println("Error executing template:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -59,6 +60,7 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 }
 
 func CreateTemplateCache() (map[string]*template.Template, error) {
+	filenameExtensionSeparator := "."
 	// Create an empty template cache.
 	myCache := make(map[string]*template.Template)
 	app.PageTemplates = make(map[string]string)
@@ -76,7 +78,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 	for _, page := range pages {
 		name := filepath.Base(page)
 		//Populate the PageTemplates dictionary in AppConfig structure using the prefix (first word) of each template filename as the key.
-		shortName := strings.Split(name, ".")
+		shortName := strings.Split(name, filenameExtensionSeparator)
 		if len(shortName) > 0 {
 			app.PageTemplates[shortName[0]] = name
 		}

@@ -32,5 +32,14 @@ func main() {
 	handlers.NewHandlers(repo)
 	fmt.Printf("Starting application on port %s \n", app.PortNumber)
 	repo.SetupRoutes()
+	// repo.HandleRoutes()
 	_ = http.ListenAndServe(app.PortNumber, nil)
+
 }
+
+// func initDb() {
+// 	db, err := gorm.Open(postgres.Open(app.Dsn), &gorm.Config{})
+// 	if err != nil {
+// 		log.Println(err)
+// 	}
+// }
