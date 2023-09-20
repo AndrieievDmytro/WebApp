@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"WebApp/db/db_models"
 	"WebApp/pkg/config"
 	"WebApp/pkg/models"
 	"WebApp/pkg/render"
@@ -64,18 +65,28 @@ func (m *Repository) SetupRoutes() {
 			return
 		}
 		defer r.Body.Close()
+		err = json.Unmarshal(body, &templateData)
+		if err != nil {
+			http.Error(w, "Failed to prepare template data", http.StatusInternalServerError)
+		}
 		if len(body) != 0 {
-			err = json.Unmarshal(body, &templateData)
-			if err != nil {
-				http.Error(w, "Failed to prepare template data", http.StatusInternalServerError)
+			if templateData.DataType == "template" {
+				val, exists := m.App.PageTemplates[lastElement]
+				if exists {
+					render.RenderTemplate(w, val, &templateData)
+				} else {
+					http.Error(w, fmt.Sprintf("Route %s is not in the map.", lastElement), http.StatusInternalServerError)
+				}
+			} else if templateData.DataType == "database" {
+				db_models.CreateRecord(m.App.DbConnection, body)
+				val, exists := m.App.PageTemplates[lastElement]
+				if exists {
+					render.RenderTemplate(w, val, nil)
+				} else {
+					http.Error(w, fmt.Sprintf("Route %s is not in the map.", lastElement), http.StatusInternalServerError)
+				}
 			}
 		}
-		val, exists := m.App.PageTemplates[lastElement]
-		if exists {
-			render.RenderTemplate(w, val, &templateData)
-		} else {
-			http.Error(w, fmt.Sprintf("Route %s is not in the map.", lastElement), http.StatusInternalServerError)
-		}
 	}
-	http.HandleFunc("/"+lastElement, handlerFunc)
+	http.HandleFunc(urlSeparator+lastElement, handlerFunc)
 }

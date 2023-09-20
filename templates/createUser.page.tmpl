@@ -1,0 +1,40 @@
+{{template "base" .}}
+
+{{define "content"}}
+<div style="width: 300px; margin: 50px auto;">
+        <h2>Create New User</h2>
+        <form action="/submit" method="post">
+            <div style="margin-bottom: 10px;">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label for="confirm_password">Confirm Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            <input type="submit" value="Create User">
+        </form>
+    </div>
+{{end}}
+
+{{define "js"}}
+    <script>
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(event) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                event.preventDefault();
+            }
+        });
+    </script>
+{{end}}

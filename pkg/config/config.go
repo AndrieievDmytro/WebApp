@@ -3,6 +3,8 @@ package config
 import (
 	"log"
 	"text/template"
+
+	"gorm.io/gorm"
 )
 
 // AppConfig structure contains the application configurations
@@ -15,6 +17,7 @@ type AppConfig struct {
 	PortNumber         string
 	PageTemplates      map[string]string
 	Dsn                string
+	DbConnection       *gorm.DB
 }
 
 // Configure the basic configurations of the application

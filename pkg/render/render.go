@@ -45,14 +45,24 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData)
 	}
 	buffer := new(bytes.Buffer)
 	// Render the template into the buffer
-	err := templateSet.Execute(buffer, td)
-	if err != nil {
-		log.Println("Error executing template:", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+	if td != nil {
+		err := templateSet.Execute(buffer, td)
+		if err != nil {
+			log.Println("Error executing template:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		err := templateSet.Execute(buffer, nil)
+		if err != nil {
+			log.Println("Error executing template:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
 	}
 	// Write the buffer contents to the HTTP response writer
-	_, err = buffer.WriteTo(w)
+	_, err := buffer.WriteTo(w)
 	if err != nil {
 		log.Println("Error writing template to browser:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

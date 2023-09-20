@@ -1,1 +1,1 @@
-package entconfig
+package db_ent_config

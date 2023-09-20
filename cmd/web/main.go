@@ -1,6 +1,8 @@
 package main
 
 import (
+	"WebApp/db"
+	"WebApp/db/db_models"
 	"WebApp/helper"
 	"WebApp/pkg/config"
 	"WebApp/pkg/handlers"
@@ -30,16 +32,11 @@ func main() {
 	app.TempateCache = templateCache
 	repo := handlers.NewRepository(&app)
 	handlers.NewHandlers(repo)
+	dbConnection := db.InitDb(&app)
+	app.DbConnection = dbConnection
+	db_models.InitModels(dbConnection)
 	fmt.Printf("Starting application on port %s \n", app.PortNumber)
 	repo.SetupRoutes()
 	// repo.HandleRoutes()
 	_ = http.ListenAndServe(app.PortNumber, nil)
-
 }
-
-// func initDb() {
-// 	db, err := gorm.Open(postgres.Open(app.Dsn), &gorm.Config{})
-// 	if err != nil {
-// 		log.Println(err)
-// 	}
-// }
